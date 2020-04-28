@@ -1,0 +1,54 @@
+---
+title: "Final Project"
+author: "Daniel Zhou, Sherry Hu, Connie Wu"
+date: "4/2/2020"
+output: pdf_document
+---
+
+```{r}
+library(ggplot2)
+library(dirichletprocess)
+library(dplyr)
+```
+
+```{r}
+df = data.frame(read.csv("data-final.csv", sep='\t'))
+head(df)
+
+```
+
+```{r}
+partial_df = (df[colnames(df)[1:100]])
+head(partial_df)
+```
+
+## just the first 10 rows, first 100 columns
+
+```{r}
+temp = sapply(partial_df[1:10,], as.numeric)
+temp = scale(temp)
+dp = DirichletProcessMvnormal(as.matrix(temp))
+dp = Fit(dp, 1000)
+```
+
+```{r}
+dp$clusterLabels
+```
+
+```{r}
+pairs(~ EXT1 + EXT2 + EXT3 + EXT4, data=temp, col=dp$clusterLabels)
+```
+
+
+```{r}
+partial_df = (df[colnames(df)[1:50]])
+temp = sapply(partial_df[1:100,], as.numeric)
+temp = scale(temp)
+dp = DirichletProcessMvnormal(as.matrix(temp))
+dp = Fit(dp, 1000)
+```
+
+```{r}
+dp$clusterLabels
+
+```
