@@ -11,6 +11,7 @@ library(dirichletprocess)
 library(dplyr)
 library(mixdir)
 library(pheatmap)
+library(tidyr)
 ```
 
 ```{r}
@@ -20,15 +21,14 @@ head(df)
 ```
 
 ```{r}
-partial_df = (df[colnames(df)[1:100]])
+partial_df = (df[colnames(df)[1:50]])
 head(partial_df)
 ```
 
 
-## trying mixdir
+## mixdir
 ```{r}
-partial_50 = (df[colnames(df)[1:50]])
-result <- mixdir(partial_50[1:500,])
+result <- mixdir(partial_df[1:500,],n_latent=5)
 ```
 
 ```{r}
@@ -37,78 +37,9 @@ pheatmap::pheatmap(result$class_prob, cluster_cols=FALSE,
 ```
 
 ```{r}
-def_feat <- find_defining_features(result, partial_50, n_features = 3)
+def_feat <- find_defining_features(result, partial_50[1:500,], n_features = 5)
 print(def_feat)
 ```
-
-
-## just the first 10 rows, first 100 columns
-
 ```{r}
-temp = sapply(partial_df[1:10,], as.numeric)
-temp = scale(temp)
-dp = DirichletProcessMvnormal(as.matrix(temp))
-dp = Fit(dp, 1000)
-```
-
-```{r}
-dp$clusterLabels
-```
-
-```{r}
-pairs(~ EXT1 + EXT2 + EXT3 + EXT4, data=temp, col=dp$clusterLabels)
-```
-
-## first 50 columns, first 500 rows
-
-```{r}
-partial_df = (df[colnames(df)[1:50]])
-temp = sapply(partial_df[1:500,], as.numeric)
-temp = scale(temp)
-dp = DirichletProcessMvnormal(as.matrix(temp))
-dp = Fit(dp, 1000)
-```
-
-```{r}
-dp$clusterLabels
-```
-
-```{r}
-pairs(~ EXT1 + EXT2 + EXT3 + EXT4 + EXT5, data=temp, col=dp$clusterLabels)
-```
-
-## first 100 columns, first 500 rows
-```{r}
-partial_df = (df[colnames(df)[1:100]])
-temp = sapply(partial_df[1:500,], as.numeric)
-temp = scale(temp)
-dp_100 = DirichletProcessMvnormal(as.matrix(temp))
-dp_100 = Fit(dp_100, 1000)
-```
-
-```{r}
-dp_100$clusterLabels
-```
-
-```{r}
-pairs(~ EXT1 + EXT2 + EXT3 + EXT4 + EXT5, data=temp, col=dp_100$clusterLabels)
-```
-
-
-## first 50 columns, first 100k rows
-```{r}
-partial_df = (df[colnames(df)[1:50]])
-row_nums = sample(1:dim(df)[1], 10000)
-temp = sapply(partial_df[row_nums,], as.numeric)
-temp = scale(temp)
-dp = DirichletProcessMvnormal(as.matrix(temp))
-dp = Fit(dp, 1000)
-```
-
-```{r}
-dp$clusterLabels
-```
-
-```{r}
-pairs(~ EXT1 + EXT2 + EXT3 + EXT4 + EXT5, data=temp, col=dp$clusterLabels)
+plot_features(def_feat$features, result$category_prob)
 ```
