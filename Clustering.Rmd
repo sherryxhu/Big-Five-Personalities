@@ -14,6 +14,7 @@ library(pheatmap)
 library(tidyr)
 ```
 
+# EDA / Data Wrangling
 ```{r}
 df = data.frame(read.csv("data-final.csv", sep='\t'))
 head(df)
@@ -21,12 +22,28 @@ head(df)
 ```
 
 ```{r}
+df = df[df$IPC == 1,]
+dim(df)
+```
+
+```{r}
 partial_df = (df[colnames(df)[1:50]])
-head(partial_df)
+dim(partial_df)
+```
+
+```{r}
+dim(na.omit(partial_df))
+```
+
+```{r}
+partial_df[partial_df==0] = NA
+partial_df = na.omit(partial_df)
+dim(partial_df)
+
 ```
 
 
-## mixdir
+## mixdir (sherry's)
 ```{r}
 result <- mixdir(partial_df[1:500,],n_latent=5)
 ```
@@ -37,9 +54,43 @@ pheatmap::pheatmap(result$class_prob, cluster_cols=FALSE,
 ```
 
 ```{r}
-def_feat <- find_defining_features(result, partial_50[1:500,], n_features = 5)
+def_feat <- find_defining_features(result, partial_df[1:500,], n_features = 5)
 print(def_feat)
 ```
 ```{r}
 plot_features(def_feat$features, result$category_prob)
 ```
+
+## mixeddir with means (daniels)
+
+```{r}
+# read in cleaned csv from python
+
+df = data.frame(read.csv("means.csv"))
+df[,'EXT']<-factor(df[,'EXT'])
+df[,'EST']<-factor(df[,'EST'])
+df[,'AGR']<-factor(df[,'AGR'])
+df[,'CSN']<-factor(df[,'CSN'])
+df[,'OPN']<-factor(df[,'OPN'])
+head(df)
+```
+
+
+```{r}
+result <- mixdir(df[1:500,])
+```
+
+```{r}
+pheatmap::pheatmap(result$class_prob, cluster_cols=FALSE,
+                  labels_col = paste("Personality"))
+```
+
+```{r}
+def_feat <- find_defining_features(result, df[1:500,])
+print(def_feat)
+```
+```{r}
+plot_features(def_feat$features, result$category_prob)
+```
+
+
