@@ -101,7 +101,7 @@ plot_features(def_feat$features, result$category_prob)
 ```{r}
 clean_data <- read.csv("clean_data.csv")[2:51]
 clean_data_country <- read.csv("clean_data1.csv")[2:52]
-time_cleaned <- read.csv("time_cleaned.csv")[2:51]
+time_cleaned <- read.csv("time_cleaned.csv")[2:52]
 ```
 
 ```{r dp-1}
