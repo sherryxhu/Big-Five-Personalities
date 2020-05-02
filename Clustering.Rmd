@@ -120,6 +120,31 @@ for (i in 2:32) {
 }
 ```
 
+```{r}
+iter = 30
+n = 5000
+results<-matrix(NA,nrow=iter,ncol=n)
+random_total <- sample_n(time_cleaned, n)
+for (i in 1:iter){
+    print(i)
+    result_temp <- mixdir(random_total, n_latent = 3)
+    results[i,] <- result_temp$pred_class
+}
+```
+
+```{r}
+all_ari = c()
+for (i in 1:(iter-1)){
+    for (j in (i + 1):iter){
+        all_ari = c(all_ari, adjustedRandIndex(results[i,], results[j,]))
+    }
+}
+```
+
+```{r}
+results[1,]<-result_temp$pred_class
+
+```
 ## Final Result
 
 ```{r}
