@@ -13,7 +13,8 @@ library(mixdir)
 library(pheatmap)
 library(tidyr)
 library(mclust)
-library(cluster)
+library(klaR)
+library(poLCA)
 ```
 
 # EDA / Data Wrangling
@@ -95,109 +96,51 @@ print(def_feat)
 plot_features(def_feat$features, result$category_prob)
 ```
 
-
-## Mixdir Random Samples: Dirichlet Process
+## mixdir Random Samples: Dirichlet
 
 ```{r}
-clean_data <- read.csv("clean_data.csv")[2:51]
-clean_data_country <- read.csv("clean_data1.csv")[2:52]
 time_cleaned <- read.csv("time_cleaned.csv")[2:52]
 ```
 
-```{r dp-1}
-set.seed(1)
-random_df1 <- sample_n(clean_data, 1000)
-result1_dp <- mixdir(random_df1, select_latent = TRUE)
-pheatmap::pheatmap(result1_dp$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
+```{r}
+set.seed(5)
+random_total <- sample_n(time_cleaned, 1000)
+all_km_ari <-c()
+all_lca_ari <- c()
+for (i in 2:32) {
+  print(i)
+  result_temp <- mixdir(random_total, n_latent = i)
+  km_dp <- kmodes(random_total, i)
+  f <- cbind(EXT1, EXT2, EXT3, EXT4, EXT5, EXT6, EXT7, EXT8, EXT9, EXT10, EST1, EST2, EST3, EST4, EST5, EST6, EST7, EST8, EST9, EST10, AGR1, AGR2, AGR3, AGR4, AGR5, AGR6, AGR7, AGR8, AGR9, AGR10, CSN1, CSN2, CSN3, CSN4, CSN5, CSN6, CSN7, CSN8, CSN9, CSN10, OPN1, OPN2, OPN3, OPN4, OPN5, OPN6, OPN7, OPN8, OPN9, OPN10) ~ 1
+  lca_dp <- poLCA(f, random_total, nclass = i)
+  km_ari <- adjustedRandIndex(result_temp$pred_class, km_dp$cluster)
+  lca_ari <- adjustedRandIndex(result_temp$pred_class, lca_dp$predclass)
+  all_km_ari = c(all_km_ari, km_ari)
+  all_lca_ari = c(all_lca_ari, lca_ari)
+}
 ```
 
-```{r dp-country-1}
-set.seed(1)
-random_df_country1 <- sample_n(clean_data_country, 1000)
-result1_dp_country <- mixdir(random_df_country1, select_latent = TRUE)
-pheatmap::pheatmap(result1_dp_country$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
+## Final Result
+
+```{r}
+max(all_km_ari)
+max(all_lca_ari)
 ```
 
-```{r dp-time-1}
-set.seed(1)
-random_df_time1 <- sample_n(time_cleaned, 1000)
-result1_dp_time <- mixdir(random_df_time1, select_latent = TRUE)
-pheatmap::pheatmap(result1_dp_time$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
-```
+```{r}
+latent_class <- which(all_lca_ari == max(all_lca_ari)) + 1
 
-```{r dp-2}
-set.seed(2)
-random_df2 <- sample_n(clean_data, 1000)
-result2_dp <- mixdir(random_df2, select_latent = TRUE)
-pheatmap::pheatmap(result2_dp$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
-```
+result_final <- mixdir(random_total, n_latent = latent_class)
 
-```{r dp-country-2}
-set.seed(2)
-random_df_country2 <- sample_n(clean_data_country, 1000)
-result2_dp_country <- mixdir(random_df_country2, select_latent = TRUE)
-pheatmap::pheatmap(result2_dp_country$class_prob, cluster_cols=FALSE,
+pheatmap::pheatmap(result_final$class_prob, cluster_cols=FALSE,
                   labels_col = paste("Personality"))
 ```
 
 ```{r}
-set.seed(3)
-random_df3 <- sample_n(clean_data, 1000)
-result3_dp <- mixdir(random_df3, select_latent = TRUE)
-pheatmap::pheatmap(result3_dp$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
-```
-
-## Mixdir Random Samples: Dirichlet
-
-```{r}
-result1_d <- mixdir(random_df1, n_latent = 5)
-pheatmap::pheatmap(result1_d$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
+def_feat <- find_defining_features(result_final, random_total)
+print(def_feat)
 ```
 
 ```{r}
-result2_d <- mixdir(random_df2, n_latent = 5)
-pheatmap::pheatmap(result2_d$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
-```
-
-```{r}
-result3_d <- mixdir(random_df3, n_latent = 5)
-pheatmap::pheatmap(result3_d$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
-```
-
-## K-modes algorithm 
-
-```{r}
-f <- cbind(EXT1, EXT2, EXT3, EXT4, EXT5, EXT6, EXT7, EXT8, EXT9, EXT10, EST1, EST2, EST3, EST4, EST5, EST6, EST7, EST8, EST9, EST10, AGR1, AGR2, AGR3, AGR4, AGR5, AGR6, AGR7, AGR8, AGR9, AGR10, CSN1, CSN2, CSN3, CSN4, CSN5, CSN6, CSN7, CSN8, CSN9, CSN10, OPN1, OPN2, OPN3, OPN4, OPN5, OPN6, OPN7, OPN8, OPN9, OPN10) ~ 1
-lca1_dp <- poLCA(f, random_df_time1, nclass = 3)
-lca2_dp <- poLCA(f, random_df_country2, nclass = 3)
-
-km_dp <- kmodes(random_df_time1, 3)
-lca2_dp <- poLCA(f, random_df2, nclass = 5)
-lca3_dp <- poLCA(f, random_df3, nclass = 5)
-```
-
-```{r}
-lca1_d <- poLCA(f, random_df_country1, nclass = 3)
-mmc1_d <- mixmodCluster(random_df1, 5)
-```
-
-## ARI comparison 
-```{r dp}
-adjustedRandIndex(result1_dp_time$pred_class, lca1_dp$predclass)
-adjustedRandIndex(result2_dp_country$pred_class, lca2_dp$predclass)
-adjustedRandIndex(result3_dp$pred_class, lca3_dp$cluster)
-```
-
-```{r}
-adjustedRandIndex(result1_d$pred_class, mmc1_d[12])
-adjustedRandIndex(result2_d$pred_class, km2_d$cluster)
-adjustedRandIndex(result3_d$pred_class, km3_d$cluster)
+plot_features(head(def_feat$features, 6), result_final$category_prob)
 ```
