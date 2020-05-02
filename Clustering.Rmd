@@ -96,6 +96,22 @@ print(def_feat)
 plot_features(def_feat$features, result$category_prob)
 ```
 
+## mixdir Random Sample: Dirichlet Process
+
+```{r}
+set.seed(5)
+random_total <- sample_n(time_cleaned, 1000)
+result_initial <- mixdir(random_total, select_latent = TRUE)
+pheatmap::pheatmap(result_initial$class_prob, cluster_cols=FALSE,
+                  labels_col = paste("Personality", 1:3))
+```
+
+```{r}
+def_feat_init <- find_defining_features(result_initial, random_total)
+plot_features(head(def_feat_init$features, 3), result_initial$category_prob)
+```
+
+
 ## mixdir Random Samples: Dirichlet
 
 ```{r}
@@ -104,19 +120,14 @@ time_cleaned <- read.csv("time_cleaned.csv")[2:52]
 
 ```{r}
 set.seed(5)
-random_total <- sample_n(time_cleaned, 1000)
-all_km_ari <-c()
 all_lca_ari <- c()
 for (i in 2:32) {
-  print(i)
   result_temp <- mixdir(random_total, n_latent = i)
-  km_dp <- kmodes(random_total, i)
   f <- cbind(EXT1, EXT2, EXT3, EXT4, EXT5, EXT6, EXT7, EXT8, EXT9, EXT10, EST1, EST2, EST3, EST4, EST5, EST6, EST7, EST8, EST9, EST10, AGR1, AGR2, AGR3, AGR4, AGR5, AGR6, AGR7, AGR8, AGR9, AGR10, CSN1, CSN2, CSN3, CSN4, CSN5, CSN6, CSN7, CSN8, CSN9, CSN10, OPN1, OPN2, OPN3, OPN4, OPN5, OPN6, OPN7, OPN8, OPN9, OPN10) ~ 1
   lca_dp <- poLCA(f, random_total, nclass = i)
   km_ari <- adjustedRandIndex(result_temp$pred_class, km_dp$cluster)
   lca_ari <- adjustedRandIndex(result_temp$pred_class, lca_dp$predclass)
-  all_km_ari = c(all_km_ari, km_ari)
-  all_lca_ari = c(all_lca_ari, lca_ari)
+  all_lca_ari <- c(all_lca_ari, lca_ari)
 }
 ```
 
@@ -148,7 +159,6 @@ results[1,]<-result_temp$pred_class
 ## Final Result
 
 ```{r}
-max(all_km_ari)
 max(all_lca_ari)
 ```
 
@@ -158,14 +168,10 @@ latent_class <- which(all_lca_ari == max(all_lca_ari)) + 1
 result_final <- mixdir(random_total, n_latent = latent_class)
 
 pheatmap::pheatmap(result_final$class_prob, cluster_cols=FALSE,
-                  labels_col = paste("Personality"))
+                  labels_col = paste("Personality", 1:3))
 ```
 
 ```{r}
 def_feat <- find_defining_features(result_final, random_total)
-print(def_feat)
-```
-
-```{r}
-plot_features(head(def_feat$features, 6), result_final$category_prob)
+plot_features(head(def_feat$features, 3), result_final$category_prob)
 ```
